@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>生日惊喜 🎁</title>
+<style>
+html, body {
+  margin:0; padding:0;
+  width:100%; height:100%;
+  overflow:hidden;
+  font-family:'Segoe Script', 'Comic Sans MS', cursive, sans-serif;
+  background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+  background-size: 400% 400%;
+  animation: gradient 12s ease infinite;
+}
+
+@keyframes gradient {
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
+}
+
+/* 礼物盒 */
+#gift {
+  position: absolute;
+  top: 35%; left:50%;
+  transform: translate(-50%, -50%);
+  width: 40vw; height: 40vw;
+  max-width: 250px; max-height: 250px;
+  background: url('gift.png') no-repeat center/contain;
+  cursor:pointer;
+  z-index:5;
+}
+
+/* 礼物下方文字 */
+#gift-text {
+  position: absolute;
+  top: 55%; left:50%;
+  transform: translateX(-50%);
+  font-size:5vw;
+  max-font-size:24px;
+  color:#fff;
+  text-align:center;
+  z-index:5;
+}
+
+/* 消息文字 */
+#message {
+  position:absolute;
+  top:35%; width:100%;
+  text-align:center;
+  color:#fff;
+  font-size:5vw;
+  line-height:1.5;
+  z-index:5;
+  display:none;
+}
+#message span {
+  opacity:0;
+  display:block;
+  animation: fadeIn 1s forwards;
+}
+@keyframes fadeIn{
+  from {opacity:0; transform: translateY(20px);}
+  to {opacity:1; transform: translateY(0);}
+}
+
+/* 爱心粒子 */
+.particle {
+  position: fixed;
+  width: 4vw; height:4vw;
+  border-radius:50%;
+  opacity:0.6;
+  z-index:1;
+  background: #ff69b4;
+}
+
+/* 烟花画布 */
+canvas { position:absolute; top:0; left:0; z-index:2; width:100%; height:100%; }
+
+</style>
+</head>
+<body>
+
+<div id="gift"></div>
+<div id="gift-text">点我有惊喜</div>
+
+<div id="message">
+  <span>张艺檬同学生日快乐呀！</span>
+  <span>想起我们从初中一路走到现在，</span>
+  <span>很庆幸这些年里一直有你。</span>
+  <span>愿你永远像今晚的烟花一样，</span>
+  <span>熠熠生辉，被世界温柔以待。</span>
+  <span>—— 张钧侯</span>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<script>
+// 点击礼物显示文字
+const gift = document.getElementById('gift');
+const giftText = document.getElementById('gift-text');
+const message = document.getElementById('message');
+gift.addEventListener('click',()=>{
+  gift.style.display='none';
+  giftText.style.display='none';
+  message.style.display='block';
+  const spans=document.querySelectorAll('#message span');
+  spans.forEach((span,i)=>{ span.style.animationDelay=`${i*1.2}s`; });
+});
+
+// 爱心粒子
+function createParticle(){
+  const particle=document.createElement("div");
+  particle.className="particle";
+  particle.style.left=Math.random()*100+"vw";
+  particle.style.top="100vh";
+  document.body.appendChild(particle);
+  const duration = 4000 + Math.random()*3000;
+  particle.animate([
+    {transform:`translateY(0px) rotate(0deg)`, opacity:1},
+    {transform:`translateY(-100vh) rotate(${Math.random()*360}deg)`, opacity:0}
+  ], {duration:duration, easing:'linear'});
+  setTimeout(()=>particle.remove(), duration);
+}
+setInterval(createParticle, 500);
+
+// 烟花特效
+const canvas=document.getElementById("fireworks");
+const ctx=canvas.getContext("2d");
+function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
+resize();
+window.addEventListener("resize",resize);
+
+class ParticleF{
+  constructor(x,y,color,vx,vy){this.x=x;this.y=y;this.color=color;this.vx=vx;this.vy=vy;this.alpha=1;this.size=Math.random()*3+2;}
+  update(){this.x+=this.vx;this.y+=this.vy;this.vy+=0.02; this.alpha-=0.01;}
+  draw(){ctx.globalAlpha=this.alpha;ctx.fillStyle=this.color;ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+}
+let particles=[];
+function fireworks(){
+  if(Math.random()<0.05){
+    let x=Math.random()*canvas.width;
+    let y=Math.random()*canvas.height*0.5;
+    let color=`hsl(${Math.random()*360},100%,50%)`;
+    for(let i=0;i<50;i++){
+      let angle=(Math.PI*2*i)/50;
+      let speed=Math.random()*5+2;
+      particles.push(new ParticleF(x,y,color,Math.cos(angle)*speed,Math.sin(angle)*speed));
+    }
+  }
+}
+function animate(){
+  ctx.fillStyle="rgba(0,0,0,0.2)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  fireworks();
+  particles.forEach((p,i)=>{
+    p.update();
+    p.draw();
+    if(p.alpha<=0) particles.splice(i,1);
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
